@@ -1,4 +1,3 @@
-// src/components/nav/app-sidebar.tsx
 'use client';
 
 import {
@@ -9,12 +8,13 @@ import {
 } from '@/components/ui/sidebar';
 import { NavMain } from '../nav-main';
 import { NavUser } from '../nav-user';
-import { GalleryVerticalEnd } from 'lucide-react';
+import { TeamSwitcher } from './team-switcher';
+import { Microscope } from 'lucide-react';
 
 const navItems = [
   {
     title: 'Tratamentos',
-    icon: GalleryVerticalEnd,
+    icon: Microscope,
     items: [
       { title: 'Todos', url: '/treatments' },
       { title: 'Criar novo', url: '/treatments/new' },
@@ -33,14 +33,20 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <h2 className="text-lg font-semibold">Rigel Sense</h2>
+        <TeamSwitcher />
       </SidebarHeader>
+
       <SidebarContent>
         <NavMain items={navItems} />
       </SidebarContent>
+
       <SidebarFooter>
         <NavUser
-          user={{ name: 'João Vitor', email: 'medico@rigel.com', avatar: '' }}
+          user={{
+            name: 'João Vitor',
+            email: 'medico@rigel.com',
+            avatar: '', // pode usar alguma imagem depois
+          }}
         />
       </SidebarFooter>
     </Sidebar>
