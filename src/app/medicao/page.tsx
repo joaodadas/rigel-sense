@@ -64,16 +64,23 @@ const Header = () => (
 );
 
 export default function MedicaoPage() {
-  const [conectado, setConectado] = useState(false);
-  const [sensores, setSensores] = useState<Record<string, string>>({});
-  const [historico, setHistorico] = useState<
+  const [conectado] = useState(false);
+  const [sensores] = useState<Record<string, string>>({});
+  const [historico] = useState<
     { sensor: string; valor: number; timestamp: number }[]
   >([]);
-  const [erro, setErro] = useState('');
+  const [erro] = useState('');
   const [anotacao, setAnotacao] = useState('');
   const [circunferencia, setCircunferencia] = useState('');
   const [regiao, setRegiao] = useState('');
-  const [medicoes, setMedicoes] = useState<any[]>([]);
+  type Medicao = {
+    timestamp: string;
+    sensores: Record<string, string>;
+    anotacao: string;
+    regiao: string;
+    circunferencia: string;
+  };
+  const [, setMedicoes] = useState<Medicao[]>([]);
 
   function salvarMedicao() {
     if (!regiao || !circunferencia || !anotacao)
@@ -109,7 +116,7 @@ export default function MedicaoPage() {
         <main className="p-6 space-y-6">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">Nova Medição</h1>
-            <Badge variant={conectado ? 'success' : 'destructive'}>
+            <Badge variant={conectado ? 'default' : 'destructive'}>
               {conectado ? (
                 <span className="flex items-center gap-1">
                   <PlugZap size={16} /> Conectado
