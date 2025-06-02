@@ -20,7 +20,10 @@ export default clerkMiddleware(async (auth, req) => {
     redirect('/dashboard'); // 🔒 já está autenticado? vai direto
   }
   if (!isPublicRoute(req)) {
-    await auth().protect(); // Redireciona para /sign-in se não autenticado
+    const session = await auth();
+    if (!session.userId) {
+      redirect('/login'); // or throw new Error('Unauthorized');
+    }
   }
 });
 
