@@ -1,26 +1,39 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/useAuthStore";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSignIn } from '@clerk/nextjs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 export function LoginForm() {
   const router = useRouter();
-  const login = useAuthStore((s) => s.login);
-  const [email, setEmail] = useState("medico@rigel.com");
-  const [password, setPassword] = useState("1234");
-  const [error, setError] = useState("");
+  const { signIn, isLoaded } = useSignIn();
+
+  const [email, setEmail] = useState('medico@rigel.com');
+  const [password, setPassword] = useState('1234');
+  const [error, setError] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const success = await login(email, password);
-    if (success) {
-      router.push("/dashboard");
-    } else {
-      setError("Credenciais inválidas.");
+    if (!isLoaded) return;
+
+    try {
+      const result = await signIn.create({
+        identifier: email,
+        password,
+      });
+
+      if (result.status === 'complete') {
+        await result.reload();
+        router.push('/dashboard');
+      } else {
+        setError('Erro inesperado. Tente novamente.');
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.errors?.[0]?.longMessage || 'Credenciais inválidas.');
     }
   }
 
@@ -29,7 +42,7 @@ export function LoginForm() {
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">Faça login na sua conta</h1>
         <p className="text-sm text-muted-foreground">
-          Insira seu email abaixo para entar na sua conta.
+          Insira seu email abaixo para entrar na sua conta.
         </p>
       </div>
       <div className="grid gap-6">
@@ -51,7 +64,7 @@ export function LoginForm() {
               href="#"
               className="ml-auto text-sm underline-offset-4 hover:underline"
             >
-              Esqueceu sua senha? 
+              Esqueceu sua senha?
             </a>
           </div>
           <Input
@@ -75,6 +88,7 @@ export function LoginForm() {
         </div>
 
         <Button variant="outline" className="w-full" type="button">
+          {/* Aqui você poderá conectar Google com OAuth via Clerk depois */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -83,12 +97,12 @@ export function LoginForm() {
           >
             <path d="M12 .297c-6.63..." />
           </svg>
-          Login with Google
+          Login com Google
         </Button>
       </div>
 
       <div className="text-center text-sm text-muted-foreground">
-        Não tem uma conta?{" "}
+        Não tem uma conta?{' '}
         <a href="#" className="underline underline-offset-4">
           Contato
         </a>
