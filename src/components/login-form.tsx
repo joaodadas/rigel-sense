@@ -31,9 +31,21 @@ export function LoginForm() {
       } else {
         setError('Erro inesperado. Tente novamente.');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.errors?.[0]?.longMessage || 'Credenciais inválidas.');
+      if (
+        typeof err === 'object' &&
+        err !== null &&
+        'errors' in err &&
+        Array.isArray((err as { errors?: { longMessage?: string }[] }).errors)
+      ) {
+        setError(
+          (err as { errors?: { longMessage?: string }[] }).errors?.[0]
+            ?.longMessage || 'Credenciais inválidas.'
+        );
+      } else {
+        setError('Credenciais inválidas.');
+      }
     }
   }
 
