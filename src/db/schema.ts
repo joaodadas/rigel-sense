@@ -20,6 +20,7 @@ export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
   email: text('email').notNull().unique(),
+  clerkUserId: text('clerk_user_id').notNull().unique(), // ✅ Adicionado aqui
   crm: text('crm'),
   userTypeId: uuid('user_type_id')
     .notNull()
