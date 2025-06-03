@@ -6,7 +6,7 @@ import { users, userTypes } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
 const clerkClient = createClerkClient({
-  secretKey: 'sk_live_cD3yp5xjQlcuMalDQQQj424k0GE6T35aX3RJkmdIxw',
+  secretKey: process.env.CLERK_SECRET_KEY!,
 });
 
 export async function POST(req: Request) {
