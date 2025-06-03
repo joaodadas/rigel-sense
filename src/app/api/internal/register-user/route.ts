@@ -15,6 +15,11 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { name, email, userType, clerkUserId } = body;
 
+    console.log(
+      '[ENV] Clerk Secret Key used:',
+      process.env.CLERK_SECRET_KEY?.slice(0, 10)
+    );
+
     if (!name || !email || !userType || !clerkUserId) {
       return NextResponse.json(
         { error: 'Missing required fields' },
