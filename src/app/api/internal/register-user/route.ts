@@ -7,7 +7,6 @@ import { eq } from 'drizzle-orm';
 
 const clerkClient = createClerkClient({
   secretKey: 'sk_live_cD3yp5xjQlcuMalDQQQj424k0GE6T35aX3RJkmdIxw',
-  publishableKey: 'pk_live_Y2xlcmsucmlnZWxzZW5zZS5jb20k',
 });
 
 export async function POST(req: Request) {
