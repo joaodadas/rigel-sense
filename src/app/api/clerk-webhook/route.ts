@@ -1,3 +1,4 @@
+// src/app/api/clerk-webhook/route.ts
 import { Webhook } from 'svix';
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
@@ -33,7 +34,6 @@ export async function POST(req: Request) {
     console.error('❌ Webhook signature verification failed', err);
     return new NextResponse('Invalid signature', { status: 400 });
   }
-  console.log('[Webhook] Verified event:', evt);
 
   if (evt.type !== 'user.created') {
     return NextResponse.json({ message: 'Ignored' }, { status: 200 });
@@ -49,18 +49,19 @@ export async function POST(req: Request) {
     .where(eq(userTypes.name, 'doctor'));
 
   if (!doctorType) {
+    console.error('❌ Tipo de usuário "doctor" não encontrado');
     return NextResponse.json(
-      { error: 'Tipo doctor não encontrado' },
+      { error: 'Tipo de usuário "doctor" não encontrado' },
       { status: 500 }
     );
   }
 
-  const exists = await db
+  const existingUser = await db
     .select()
     .from(users)
     .where(eq(users.clerkUserId, clerkUserId));
 
-  if (exists.length === 0) {
+  if (existingUser.length === 0) {
     await db.insert(users).values({
       name,
       email,
