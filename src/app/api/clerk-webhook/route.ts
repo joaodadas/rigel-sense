@@ -1,22 +1,50 @@
 // src/app/api/clerk-webhook/route.ts
+import { Webhook } from 'svix';
+import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { userTypes, users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
-export async function POST(req: Request) {
-  const body = await req.json();
+type ClerkUserCreatedEvent = {
+  type: 'user.created';
+  data: {
+    id: string;
+    email_addresses: { email_address: string }[];
+    first_name: string;
+  };
+};
 
-  if (body.type !== 'user.created') {
+export async function POST(req: Request) {
+  const payload = await req.text();
+  const headerList = headers();
+
+  const svixId = headerList.get('svix-id')!;
+  const svixTimestamp = headerList.get('svix-timestamp')!;
+  const svixSignature = headerList.get('svix-signature')!;
+
+  const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET!);
+  let evt: ClerkUserCreatedEvent;
+
+  try {
+    evt = wh.verify(payload, {
+      'svix-id': svixId,
+      'svix-timestamp': svixTimestamp,
+      'svix-signature': svixSignature,
+    }) as ClerkUserCreatedEvent;
+  } catch (err) {
+    console.error('❌ Webhook signature verification failed', err);
+    return new NextResponse('Invalid signature', { status: 400 });
+  }
+
+  if (evt.type !== 'user.created') {
     return NextResponse.json({ message: 'Ignored' }, { status: 200 });
   }
 
-  const { id: clerkUserId, email_addresses, first_name } = body.data;
-
+  const { id: clerkUserId, email_addresses, first_name } = evt.data;
   const email = email_addresses?.[0]?.email_address || '';
   const name = first_name || 'User';
 
-  // Busca userTypeId de "doctor"
   const [doctorType] = await db
     .select()
     .from(userTypes)
@@ -29,7 +57,6 @@ export async function POST(req: Request) {
     );
   }
 
-  // Verifica se já existe
   const exists = await db
     .select()
     .from(users)
