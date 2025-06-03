@@ -1,15 +1,20 @@
+// src/app/api/internal/register-user/route.ts
+import { createClerkClient } from '@clerk/backend';
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { users, userTypes } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { clerkClient } from '@clerk/nextjs/server';
+
+const clerkClient = createClerkClient({
+  secretKey: process.env.CLERK_SECRET_KEY!,
+  publishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!,
+});
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { name, email, userType, clerkUserId } = body;
 
-    // 🔍 Validação básica dos campos
     if (!name || !email || !userType || !clerkUserId) {
       return NextResponse.json(
         { error: 'Missing required fields' },
@@ -17,7 +22,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 🔍 Verifica se o usuário existe no Clerk
+    // Verifica se o usuário existe no Clerk
     try {
       await clerkClient.users.getUser(clerkUserId);
     } catch {
@@ -27,7 +32,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 🔍 Verifica se já existe no banco
+    // Verifica se já existe no banco
     const [existingUser] = await db
       .select()
       .from(users)
@@ -40,7 +45,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // 🔍 Verifica tipo de usuário
     const [type] = await db
       .select()
       .from(userTypes)
@@ -50,7 +54,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid user type' }, { status: 400 });
     }
 
-    // ✅ Insere novo usuário
     await db.insert(users).values({
       name,
       email,
