@@ -33,6 +33,7 @@ export async function POST(req: Request) {
     console.error('❌ Webhook signature verification failed', err);
     return new NextResponse('Invalid signature', { status: 400 });
   }
+  console.log('[Webhook] Verified event:', evt);
 
   if (evt.type !== 'user.created') {
     return NextResponse.json({ message: 'Ignored' }, { status: 200 });
