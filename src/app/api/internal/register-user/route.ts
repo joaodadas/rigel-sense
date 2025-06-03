@@ -6,8 +6,8 @@ import { users, userTypes } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
 const clerkClient = createClerkClient({
-  secretKey: process.env.CLERK_SECRET_KEY!,
-  publishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!,
+  secretKey: 'sk_live_cD3yp5xjQlcuMaID0QQj424k0GEt35aX3RJkmdIxw',
+  publishableKey: 'pk_live_Y2xlcmsucm1nZWxzZW5zSjtb20k',
 });
 
 export async function POST(req: Request) {
