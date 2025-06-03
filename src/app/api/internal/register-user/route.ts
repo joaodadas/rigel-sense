@@ -61,9 +61,19 @@ export async function POST(req: Request) {
       clerkUserId,
     });
 
+    console.log('[Register User] Insert completed');
+
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (err) {
-    console.error('[Register User] Unexpected error:', err);
+    if (err instanceof Error) {
+      console.error(
+        '[Register User] Unexpected error:',
+        err.message,
+        err.stack
+      );
+    } else {
+      console.error('[Register User] Unexpected error:', err);
+    }
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
