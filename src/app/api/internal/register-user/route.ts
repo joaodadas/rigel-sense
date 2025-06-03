@@ -1,9 +1,10 @@
 // src/app/api/internal/register-user/route.ts
-import { createClerkClient } from '@clerk/backend';
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { users, userTypes } from '@/db/schema';
 import { eq } from 'drizzle-orm';
+
+import { createClerkClient } from '@clerk/clerk-sdk-node';
 
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY!,
