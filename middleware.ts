@@ -1,36 +1,34 @@
-// middleware.ts
-import {
-  clerkMiddleware,
-  createRouteMatcher,
-  currentUser,
-} from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
-const isPublicRoute = createRouteMatcher([
-  '/',
-  '/login',
-  '/sign-in(.*)',
-  '/sign-up(.*)',
-]);
+const PUBLIC_ROUTES = ['/', '/login', '/sign-in', '/sign-up'];
 
-export default clerkMiddleware(async (auth, req) => {
-  const user = await currentUser();
+export async function middleware(req: NextRequest) {
+  const res = NextResponse.next();
+  const supabase = createMiddlewareClient({ req, res });
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  if (user) {
-    redirect('/dashboard'); // 🔒 já está autenticado? vai direto
+  const isPublic = PUBLIC_ROUTES.some((route) =>
+    req.nextUrl.pathname.startsWith(route)
+  );
+
+  if (session && req.nextUrl.pathname === '/login') {
+    return NextResponse.redirect(new URL('/dashboard', req.url));
   }
-  if (!isPublicRoute(req)) {
-    const session = await auth();
-    if (!session.userId) {
-      redirect('/login'); // or throw new Error('Unauthorized');
-    }
+
+  if (!session && !isPublic) {
+    return NextResponse.redirect(new URL('/login', req.url));
   }
-});
+
+  return res;
+}
 
 export const config = {
   matcher: [
-    // Ignora arquivos estáticos e internos do Next.js
     '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    '/(api|trpc)(.*)', // Sempre rodar em rotas da API
+    '/(api|trpc)(.*)',
   ],
 };
