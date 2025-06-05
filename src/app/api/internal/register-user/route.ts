@@ -4,35 +4,33 @@ import { db } from '@/db';
 import { users, userTypes } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
-import { createClerkClient } from '@clerk/clerk-sdk-node';
+import { createClient } from '@supabase/supabase-js';
 
-const clerkClient = createClerkClient({
-  secretKey: process.env.CLERK_SECRET_KEY!,
-});
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, email, userType, clerkUserId } = body;
+    const { name, email, userType, supabaseUserId } = body;
 
-    console.log(
-      '[ENV] Clerk Secret Key used:',
-      process.env.CLERK_SECRET_KEY?.slice(0, 10)
-    );
+    console.log('[ENV] Supabase service key used');
 
-    if (!name || !email || !userType || !clerkUserId) {
+    if (!name || !email || !userType || !supabaseUserId) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    // Verifica se o usuário existe no Clerk
+    // Verifica se o usuário existe no Supabase
     try {
-      await clerkClient.users.getUser(clerkUserId);
+      await supabaseAdmin.auth.admin.getUserById(supabaseUserId);
     } catch {
       return NextResponse.json(
-        { error: 'User not found in Clerk' },
+        { error: 'User not found in Supabase' },
         { status: 404 }
       );
     }
@@ -41,7 +39,7 @@ export async function POST(req: Request) {
     const [existingUser] = await db
       .select()
       .from(users)
-      .where(eq(users.clerkUserId, clerkUserId));
+      .where(eq(users.supabaseUserId, supabaseUserId));
 
     if (existingUser) {
       return NextResponse.json(
@@ -63,7 +61,7 @@ export async function POST(req: Request) {
       name,
       email,
       userTypeId: type.id,
-      clerkUserId,
+      supabaseUserId,
     });
 
     console.log('[Register User] Insert completed');

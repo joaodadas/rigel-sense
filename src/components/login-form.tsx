@@ -2,14 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSignIn } from '@clerk/nextjs';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 
 export function LoginForm() {
   const router = useRouter();
-  const { signIn, isLoaded } = useSignIn();
+  const supabase = createClientComponentClient();
 
   const [email, setEmail] = useState('medico@rigel.com');
   const [password, setPassword] = useState('1234');
@@ -17,36 +17,18 @@ export function LoginForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!isLoaded) return;
 
-    try {
-      const result = await signIn.create({
-        identifier: email,
-        password,
-      });
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-      if (result.status === 'complete') {
-        await result.reload();
-        router.push('/dashboard');
-      } else {
-        setError('Erro inesperado. Tente novamente.');
-      }
-    } catch (err: unknown) {
-      console.error(err);
-      if (
-        typeof err === 'object' &&
-        err !== null &&
-        'errors' in err &&
-        Array.isArray((err as { errors?: { longMessage?: string }[] }).errors)
-      ) {
-        setError(
-          (err as { errors?: { longMessage?: string }[] }).errors?.[0]
-            ?.longMessage || 'Credenciais inválidas.'
-        );
-      } else {
-        setError('Credenciais inválidas.');
-      }
+    if (error) {
+      setError('Credenciais inválidas.');
+      return;
     }
+
+    router.push('/dashboard');
   }
 
   return (
@@ -100,7 +82,7 @@ export function LoginForm() {
         </div>
 
         <Button variant="outline" className="w-full" type="button">
-          {/* Aqui você poderá conectar Google com OAuth via Clerk depois */}
+          {/* Aqui você poderá conectar Google com OAuth depois */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
